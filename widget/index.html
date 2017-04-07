@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html onscroll="alert('asd')">
+<head lang="en">
+
+
+    <script src="../../../scripts/buildfire.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            position: relative;
+            width: 100%;
+        }
+
+        body {
+            background: #eee;
+        }
+
+        canvas {
+            background: white;
+            display: block;
+            z-index: 0;
+        }
+
+        #c {
+            left: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #pluginsContainer{
+            position: fixed;
+            padding-top:25px;
+            width:100%;
+            z-index: 999;
+            text-align: center;
+
+            -webkit-animation: fadein 4s; /* Safari, Chrome and Opera > 12.1 */
+            -moz-animation: fadein 4s; /* Firefox < 16 */
+            -ms-animation: fadein 4s; /* Internet Explorer */
+            -o-animation: fadein 4s; /* Opera < 12.1 */
+            animation: fadein 4s;
+
+            height:100%;
+            overflow: auto;
+        }
+
+
+        @keyframes fadein {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+
+        .divTitle{
+            border:solid grey 2px;
+            border-radius: 5px;
+            padding:15px;
+            font-size: 16px;
+            background-color:white;
+            margin-bottom: 10px;
+            margin-left:10%;
+            margin-right:10%;
+            opacity: .8;
+        }
+
+    </style>
+
+</head>
+<body >
+
+
+<div id="pluginsContainer"></div>
+
+
+    <script>
+        var plugins=[];
+
+        function loadData(err,obj){
+            if(err)return;
+            if(!obj.data._buildfire)return;
+
+            plugins = prepPlugins(obj.data._buildfire.plugins);
+            var pluginsContainer= document.getElementById("pluginsContainer");
+            pluginsContainer.innerHTML='';
+
+
+            for(var i=0; i < plugins.length ; i++){
+                var p=plugins[i].data || plugins[i];
+
+                var divTitle = document.createElement('div');
+                divTitle.innerHTML = p.title;
+                divTitle.classList.add("divTitle");
+                divTitle.onclick=onClick;
+                divTitle.setAttribute('index',i);
+                pluginsContainer.appendChild(divTitle);
+            }
+        }
+
+        function prepPlugins(plugins){
+            if(!plugins || !plugins.result || !plugins.result.length) return [];
+            if(!plugins.result[0].data) return plugins.result;
+
+            var temp=[];
+            plugins.result.forEach(function(p){
+                var i = plugins.data.indexOf(p.data.instanceId);
+                if(i>=0) temp[i] = p.data;
+            });
+
+            return temp;
+        }
+
+        buildfire.datastore.getWithDynamicData(loadData);
+        buildfire.datastore.onUpdate(function(obj){loadData(null,obj)});
+
+
+        function onClick(e){
+
+            var i = parseInt(this.getAttribute('index') );
+            var p = plugins[i];
+
+            buildfire.navigation.navigateTo({
+                pluginId: p.pluginTypeId
+                ,folderName : p.pluginType.folderName
+                ,instanceId : p.instanceId
+                ,title:p.title
+            });
+        }
+
+    </script>
+
+
+    <script type="text/javascript" src="js/spiral.js"></script>
+</body>
+</html>
